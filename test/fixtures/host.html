@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="pt-BR">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mestre</title>
+<link rel="stylesheet" href="/style.css">
+<style>
+    :root { --SmartThemeBodyColor: #e8e3dc; --SmartThemeBorderColor: #504d4b; --SmartThemeBlurTintColor: #262524; }
+    body { margin: 0; padding: 0.8rem; color: var(--SmartThemeBodyColor); background: #1b1a19; font: 16px system-ui, sans-serif; }
+    #send_form { display: flex; align-items: center; gap: .5rem; position: fixed; inset: auto .6rem .6rem; }
+    #send_textarea { flex: 1; width: 0; }
+    .text_pole, .menu_button { border: 1px solid var(--SmartThemeBorderColor); border-radius: 4px; color: inherit; background: #1d1c1b; padding: .3rem; font: inherit; }
+</style>
+<body>
+<header><strong>TauriTavern</strong> <button id="chat-a">Chat A</button> <button id="chat-b">Chat B</button></header>
+<main><p>A maré sobe no porto, e o farol apaga por um instante.</p></main>
+<footer id="send_form"><div id="leftSendForm"></div><textarea id="send_textarea" aria-label="Mensagem"></textarea><button>Enviar</button></footer>
+<script type="module">
+    import { activate } from '/index.js';
+    const listeners = new Map();
+    const eventTypes = Object.fromEntries(['CHAT_CHANGED', 'GENERATION_STARTED', 'WORLDINFO_ENTRIES_LOADED', 'APP_READY'].map(name => [name, name]));
+    const eventSource = {
+        on(name, fn) { listeners.set(name, [...listeners.get(name) ?? [], fn]); },
+        async emit(name, ...args) { for (const listener of listeners.get(name) ?? []) await listener(...args); },
+    };
+    const tools = new Map();
+    const definitions = new Map();
+    const persisted = (key, fallback) => JSON.parse(localStorage.getItem(key)) ?? fallback;
+    const initial = { Costa: { entries: { 0: { uid: 0, comment: 'Porto', content: 'A maré sobe.', key: ['Porto'], position: 0 } } } };
+    const books = () => persisted('books', initial);
+    let worldNames = Object.keys(books());
+    let active = 'a';
+    const ref = chat => ({ kind: 'character', characterId: 'mestre', fileName: chat });
+    const handle = target => {
+        const key = 'notebook-' + target.fileName;
+        return {
+            ref: target, stableId: async () => 'stable-' + target.fileName,
+            metadata: { get: async () => ({ world_info: target.fileName === 'a' ? 'Costa' : '' }) },
+            store: {
+                listKeys: async () => localStorage.getItem(key) ? ['notebook'] : [],
+                getJson: async () => persisted(key, null),
+                setJson: async ({ value }) => localStorage.setItem(key, JSON.stringify(value)),
+            },
+        };
+    };
+    const prompts = new Map();
+    globalThis.fetch = async (url, request) => {
+        const { name } = JSON.parse(request.body);
+        if (url === '/api/worldinfo/get') return Response.json(books()[name] ?? { entries: {} });
+        if (url === '/api/worldinfo/sanitize-name') return Response.json({ name: name.replace(/[:/]/g, '') });
+        if (url === '/api/settings/get') return Response.json({ world_names: Object.keys(books()) });
+        throw new Error('unexpected route ' + url);
+    };
+    globalThis.SillyTavern = { getContext: () => ({
+        chatId: active, chatMetadata: { world_info: active === 'a' ? 'Costa' : '', integrity: 'stable-' + active }, eventSource, eventTypes,
+        getRequestHeaders: () => ({ 'Content-Type': 'application/json' }),
+        setExtensionPrompt: (name, value) => prompts.set(name, value),
+        getWorldInfoNames: () => worldNames,
+        updateWorldInfoList: async () => { worldNames = Object.keys(books()); },
+        loadWorldInfo: async name => books()[name] ?? { entries: {} },
+        saveWorldInfo: async (name, data) => localStorage.setItem('books', JSON.stringify({ ...books(), [name]: data })),
+        reloadWorldInfoEditor: () => {},
+    }) };
+    globalThis.__TAURITAVERN__ = { ready: Promise.resolve(), api: {
+        chat: { open: handle, current: { handle: () => handle(ref(active)) } },
+        agent: { tools: { register: async (definition, execute) => { definitions.set(definition.name, definition); tools.set(definition.name, execute); } } },
+        worldInfo: { openEntry: async () => ({ opened: true }) },
+    } };
+    for (const name of ['a', 'b']) document.getElementById('chat-' + name).onclick = async () => {
+        active = name;
+        await eventSource.emit(eventTypes.CHAT_CHANGED);
+    };
+    globalThis.fixture = {
+        prompts, books, definitions,
+        tool(name, args, chat = active) {
+            return tools.get(name)(args, {
+                runId: 'run-1', invocationId: 'inv-1', callId: 'call-1',
+                target: { kind: 'chat', stableChatId: 'stable-' + chat, chatRef: ref(chat) },
+            });
+        },
+        async scan(batches = { globalLore: [], characterLore: [], chatLore: [], personaLore: [] }) {
+            await eventSource.emit(eventTypes.WORLDINFO_ENTRIES_LOADED, batches);
+            return batches;
+        },
+    };
+    await activate();
+</script>
+</body>
+</html>

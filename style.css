@@ -1,0 +1,104 @@
+.mestre-launch {
+    align-self: center;
+    margin-inline: 0.15em;
+    padding: 0.25em 0.45em;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 0.83em;
+    cursor: pointer;
+}
+
+.mestre-launch:hover,
+.mestre-launch[aria-expanded="true"] { border-color: var(--SmartThemeBorderColor, #666); }
+.mestre-launch[hidden], .mestre-panel[hidden], .mestre-panel [hidden] { display: none !important; }
+.mestre-fallback { position: fixed; bottom: 0.5rem; left: 0.75rem; z-index: 2981; }
+
+.mestre-panel {
+    position: fixed;
+    inset: max(3.1rem, env(safe-area-inset-top)) max(0.65rem, env(safe-area-inset-right)) auto auto;
+    z-index: 2980;
+    box-sizing: border-box;
+    width: min(35rem, calc(100vw - 1.3rem));
+    max-height: min(40rem, calc(100vh - 8rem));
+    max-height: min(40rem, calc(100dvh - 8rem));
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    color: var(--SmartThemeBodyColor, #eee);
+    background: var(--SmartThemeBlurTintColor, #252527);
+    border: 1px solid var(--SmartThemeBorderColor, #666);
+    border-radius: 6px;
+    box-shadow: 0 8px 24px #0005;
+    backdrop-filter: blur(14px);
+    text-align: start;
+    line-height: 1.42;
+    font-size: 0.95em;
+}
+
+.mestre-panel h2, .mestre-panel h3, .mestre-panel p { margin: 0; color: inherit; }
+.mestre-panel h2 { font-size: 1.13em; }
+.mestre-panel h3 { font-size: 1.04em; overflow-wrap: anywhere; }
+.mestre-panel p { overflow-wrap: anywhere; white-space: pre-wrap; }
+
+.mestre-panel header, .mestre-tabs, .mestre-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.mestre-panel header { justify-content: space-between; padding: 0.63rem 0.75rem 0.42rem; }
+.mestre-tabs { padding: 0 0.75rem 0.57rem; border-bottom: 1px solid var(--SmartThemeBorderColor, #666); }
+
+.mestre-body {
+    min-height: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+    padding: 0.75rem;
+    display: grid;
+    gap: 0.65rem;
+    align-content: start;
+}
+
+.mestre-panel .menu_button { margin: 0; padding: 0.22rem 0.65rem; min-height: 1.9rem; width: auto; font-size: 0.93em; }
+.mestre-panel .menu_button:disabled { cursor: default; }
+.mestre-panel .menu_button[aria-pressed="true"], .mestre-panel .mestre-primary { font-weight: 650; border-color: currentColor; }
+.mestre-panel :is(button, input, textarea, select, summary):focus-visible, .mestre-launch:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+}
+.mestre-body > .menu_button { justify-self: start; }
+.mestre-status { padding: 0.4rem 0.75rem; border-bottom: 1px solid var(--SmartThemeBorderColor, #666); }
+.mestre-status.mestre-error { color: var(--SmartThemeQuoteColor, #ffb09f); }
+
+.mestre-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-block: 0.5rem;
+    border-top: 1px solid var(--SmartThemeBorderColor, #666);
+}
+.mestre-row:first-child { border-top: none; }
+.mestre-row-text { display: grid; gap: 0.1rem; flex: 1 1 10rem; overflow-wrap: anywhere; min-width: 0; }
+.mestre-muted { font-size: 0.86em; opacity: 0.82; overflow-wrap: anywhere; }
+.mestre-form, .mestre-field, .mestre-block, .mestre-form details { display: grid; gap: 0.5rem; min-width: 0; }
+.mestre-field { gap: 0.17rem; align-items: start; }
+.mestre-field > span { font-weight: 550; }
+.mestre-field .text_pole { box-sizing: border-box; margin: 0; width: 100%; min-width: 0; }
+.mestre-field textarea { resize: vertical; }
+.mestre-field input[type="checkbox"] { justify-self: start; align-self: center; width: auto; min-height: 1rem; }
+.mestre-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr)); gap: 0.5rem; }
+.mestre-block { padding-bottom: 0.57rem; border-bottom: 1px solid var(--SmartThemeBorderColor, #666); }
+.mestre-block button { justify-self: start; }
+.mestre-form summary { cursor: pointer; margin-block: 0.4rem; }
+.mestre-form details .mestre-field, .mestre-form details .mestre-grid { margin-bottom: 0.5rem; }
+
+@media (max-width: 600px) {
+    .mestre-panel { inset-inline: 0.35rem; width: auto; max-height: calc(100vh - 7rem); max-height: calc(100dvh - 7rem); }
+    .mestre-body { padding: 0.55rem; }
+}

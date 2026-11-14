@@ -1,0 +1,9 @@
+{
+  "display_name": "Mestre — World Info e caderno",
+  "version": "0.1.0",
+  "author": "Mestre",
+  "loading_order": 55,
+  "js": "index.js",
+  "css": "style.css",
+  "hooks": { "activate": "activate", "enable": "enable", "disable": "disable", "delete": "disable" }
+}
